@@ -7,9 +7,29 @@ const NotesClient = () => {
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const createNote = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!title.trim() || !content.trim()) return;
+        setLoading(true);
+        try {
+            const responce = await fetch("/api/notes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, content })
+            });
+
+            const result = await responce.json();
+            console.log(result);
+            setLoading(false);
+        } catch (error) {
+            console.log("Error creating note: ", error);
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
-            <form action="" className="bg-white p-6 rounded-lg shadow-md">
+            <form onSubmit={createNote} className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl mb-4 font-semibold">Create New Note</h2>
                 <div className="space-y-4">
                     <input
