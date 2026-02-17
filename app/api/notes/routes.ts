@@ -24,6 +24,6 @@ export async function GET () {
         const notes = await NotesModel.find().sort({ createAt: -1 });
         return NextResponse.json({ success: true, notes });
     } catch (error) {
-        return NextResponse.json({ success: false, error });
+        return NextResponse.json({ success: false, error }, { status: 400 });
     }
 };
