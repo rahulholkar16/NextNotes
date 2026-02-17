@@ -6,10 +6,12 @@ interface Note extends mongoose.Document {
     content: string;
 };
 
+interface NoteClient {
+    _id: string;
+    title: string;
+    content: string;
+}
+
 interface NotesClientProp {
-    initialNotes: {
-        _id: string;
-        title: string;
-        content: string;
-    }[];
+    initialNotes: NoteClient[];
 };
