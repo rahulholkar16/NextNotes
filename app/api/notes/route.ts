@@ -20,7 +20,7 @@ export async function POST (req: NextRequest) {
 
 export async function GET () {
     try {
-        await connectDB();
+        await connectDB();        
         const notes = await NotesModel.find().sort({ createAt: -1 });
         return NextResponse.json({ success: true, notes });
     } catch (error) {
