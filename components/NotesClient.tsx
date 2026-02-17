@@ -1,6 +1,6 @@
 "use client";
 
-import { NotesClientProp } from "@/types";
+import { NoteClient, NotesClientProp } from "@/types";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -9,6 +9,9 @@ const NotesClient: React.FC<NotesClientProp> = ({ initialNotes }) => {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(false);
+    const [editId, setEditId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editContent, setEditContent] = useState("");
 
     const createNote = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -50,7 +53,42 @@ const NotesClient: React.FC<NotesClientProp> = ({ initialNotes }) => {
             console.error("Error deleting note: ", error);
             toast.error("Something went wrong!");
         }
+    };
+
+    const updateNote = async (id: string) => {
+        if (!editTitle.trim() || !editContent.trim()) return;
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/notes/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: editTitle, content: editContent }),
+            });
+            const result = await response.json();
+            if (result.success) {
+                toast.success("Note update successfully.");
+                setNotes(notes.map((note) => (note._id === id ? result.data : note)));
+                cancelEdit();
+            }
+            setLoading(false);
+        } catch (error) {
+            console.error("Error updating note: ", error);
+            toast.error("Something went wrong!");
+            setLoading(false);
+        }
     }
+
+    const startEdit = (note: NoteClient) => {
+        setEditId(note._id);
+        setEditTitle(note.title);
+        setEditContent(note.content);
+    };
+
+    const cancelEdit = () => {
+        setEditId(null);
+        setEditTitle("");
+        setEditContent("");
+    };
 
     return (
         <div className="space-y-6">
@@ -87,18 +125,84 @@ const NotesClient: React.FC<NotesClientProp> = ({ initialNotes }) => {
             </form>
 
             <div className="space-y-4">
-                <h2 className="text-xl font-semibold"> Your Notes ({notes.length}) </h2>
-                {notes.length === 0 ? (<p className="text-gray-600">No Notes</p>) : (
+                <h2 className="text-xl font-semibold">
+                    {" "}
+                    Your Notes ({notes?.length}){" "}
+                </h2>
+                {notes?.length === 0 ? (
+                    <p className="text-gray-600">No Notes</p>
+                ) : (
                     notes.map((note) => (
-                        <div key={note._id} className="bg-white p-6 rounded-lg shadow-md">
-                            <div className="flex justify-between items-start mb-2 ">
-                                <h3 className="text-lg font-semibold">{note.title}</h3>
-                                <div className="flex gap-2">
-                                    <button className="bg-blue-500 hover:bg-blue-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm">Edit</button>
-                                    <button onClick={() => deleteNote(note._id)} className="bg-red-500 hover:bg-red-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm">Delete</button>
-                                </div>
-                            </div>
-                            <p className="text-gray-700 mb-2">{note.content}</p>
+                        <div
+                            key={note?._id}
+                            className="bg-white p-6 rounded-lg shadow-md"
+                        >
+                            {editId === note?._id ? (
+                                <>
+                                    <div className="space-y-4">
+                                        <input
+                                            type="text"
+                                            value={editTitle}
+                                            onChange={(e) =>
+                                                setEditTitle(e.target.value)
+                                            }
+                                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            required
+                                        />
+
+                                        <textarea
+                                            value={editContent}
+                                            onChange={(e) =>
+                                                setEditContent(e.target.value)
+                                            }
+                                            rows={4}
+                                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => updateNote(note._id)}
+                                                className="bg-green-500 hover:bg-green-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm"
+                                            >
+                                                Save
+                                            </button>
+                                            <button
+                                                onClick={cancelEdit}
+                                                className="bg-gray-500 hover:bg-gray-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex justify-between items-start mb-2 ">
+                                        <h3 className="text-lg font-semibold">
+                                            {note?.title}
+                                        </h3>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => startEdit(note)}
+                                                className="bg-blue-500 hover:bg-blue-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    deleteNote(note?._id)
+                                                }
+                                                className="bg-red-500 hover:bg-red-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-700 mb-2">
+                                        {note?.content}
+                                    </p>
+                                </>
+                            )}
                         </div>
                     ))
                 )}
