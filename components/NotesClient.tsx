@@ -2,6 +2,7 @@
 
 import { NotesClientProp } from "@/types";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const NotesClient: React.FC<NotesClientProp> = ({ initialNotes }) => {
     const [notes, setNotes] = useState(initialNotes);
@@ -25,8 +26,10 @@ const NotesClient: React.FC<NotesClientProp> = ({ initialNotes }) => {
             setLoading(false);
             setTitle("");
             setContent("");
+            toast.success("Notes created successfully.");
         } catch (error) {
             console.log("Error creating note: ", error);
+            toast.error("Failed to create note.");
             setLoading(false);
         }
     };
