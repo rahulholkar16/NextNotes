@@ -34,6 +34,24 @@ const NotesClient: React.FC<NotesClientProp> = ({ initialNotes }) => {
         }
     };
 
+    const deleteNote = async (id: string) => {
+        console.log(id);
+        try {
+            const response = await fetch(`/api/notes/${id}`, {
+                method: "DELETE"
+            });
+
+            const res = await response.json();
+            if (res.success) {
+                setNotes(notes.filter((note) => note._id !== id));
+                toast.success("Notes delete successfully");
+            }
+        } catch (error) {
+            console.error("Error deleting note: ", error);
+            toast.error("Something went wrong!");
+        }
+    }
+
     return (
         <div className="space-y-6">
             <form
@@ -77,7 +95,7 @@ const NotesClient: React.FC<NotesClientProp> = ({ initialNotes }) => {
                                 <h3 className="text-lg font-semibold">{note.title}</h3>
                                 <div className="flex gap-2">
                                     <button className="bg-blue-500 hover:bg-blue-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm">Edit</button>
-                                    <button className="bg-red-500 hover:bg-red-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm">Delete</button>
+                                    <button onClick={() => deleteNote(note._id)} className="bg-red-500 hover:bg-red-700 text-sm text-white px-6 py-2 rounded-lg shadow-sm">Delete</button>
                                 </div>
                             </div>
                             <p className="text-gray-700 mb-2">{note.content}</p>
